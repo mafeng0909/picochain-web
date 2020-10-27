@@ -78,7 +78,6 @@
         cancel() {
           window.location = "http://www.picochain.com";
         }
-
       }
 
     }
