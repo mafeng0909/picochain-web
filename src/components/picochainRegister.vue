@@ -126,10 +126,10 @@
           console.log(res);
           console.log(file);
           if (this.flag === 0) {
-            this.path.path1 = "F:\\IdeaProjects\\picochain-web\\src\\picture\\"+ file.name;
+            this.path.path1 = "/home/mafeng/IdeaProjects/picochain-web/src/picture/"+ file.name;
             this.flag++;
           }else if (this.flag === 1) {
-            this.path.path2 = "F:\\IdeaProjects\\picochain-web\\src\\picture\\"+ file.name;
+            this.path.path2 = "/home/mafeng/IdeaProjects/picochain-web/src/picture/"+ file.name;
             this.flag++;
           }
         },
