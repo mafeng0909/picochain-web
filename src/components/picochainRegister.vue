@@ -54,16 +54,18 @@
               <el-button size="small" type="primary">点击上传</el-button>
               <div slot="tip" class="el-upload__tip" style="margin-top: -40px; color: white">只能上传jpg/png文件，且不超过500kb</div>
             </el-upload>
-            <div style="color: white" v-show="index === 1 && isSuccess === 1">验证成功</div>
-            <div style="color: white" v-show="index === 1 && isSuccess === 2">验证失败</div>
+            <div style="color: white" v-show="index === 1 && isSuccess_face === 1">验证成功</div>
+            <div style="color: white" v-show="index === 1 && isSuccess_face === 2">验证失败</div>
             <el-button v-show="index === 1" type="primary" @click="back">返回</el-button>
             <el-button v-show="index === 1" type="primary" @click="checkImages">进行初步认证</el-button>
-            <el-button v-show="index === 1 && isSuccess === 1" type="primary" @click="nextStep">下一步</el-button>
+            <el-button v-show="index === 1 && isSuccess_face === 1" type="primary" @click="nextStep">下一步</el-button>
 
             <!-- 步骤二：生成证明 -->
+            <div style="color: white" v-show="index === 2 && isSuccess_proof === 1">proof生成成功</div>
+            <div style="color: white" v-show="index === 2 && isSuccess_proof === 2">proof生成失败</div>
             <el-button v-show="index === 2" type="primary" @click="beforeStep">上一步</el-button>
             <el-button v-show="index === 2" type="primary" @click="generateProof">生成证明</el-button>
-            <el-button v-show="index === 2" type="primary" @click="nextStep">下一步</el-button>
+            <el-button v-show="index === 2 && isSuccess_proof === 1" type="primary" @click="nextStep">下一步</el-button>
 
             <!-- 步骤三：认证交易 -->
             <el-button v-show="index === 3" type="primary" @click="beforeStep">上一步</el-button>
@@ -97,7 +99,8 @@
             path2: "",
           },
           flag: 0,
-          isSuccess: 0,
+          isSuccess_face: 0,
+          isSuccess_proof: 0,
         };
       },
       created() {
@@ -126,7 +129,7 @@
           console.log(res);
           console.log(file);
           if (this.flag === 0) {
-            this.path.path1 = "/home/mafeng/IdeaProjects/picochain-web/src/picture/"+ file.name;
+            this.path.path1 = "/home/mafeng/IdeaProjects/picochain-web/src/picture"+ file.name;
             this.flag++;
           }else if (this.flag === 1) {
             this.path.path2 = "/home/mafeng/IdeaProjects/picochain-web/src/picture/"+ file.name;
@@ -137,14 +140,21 @@
           this.$http.post("/face/verifyFace", this.$qs.stringify(this.path))
             .then(resp => {
               if (resp.data) {
-                this.isSuccess = 1;
+                this.isSuccess_face = 1;
               }else {
-                this.isSuccess = 2;
+                this.isSuccess_face = 2;
               }
             })
         },
         generateProof() {
-
+          this.$http.post("/zksnark/generateProof")
+            .then(resp => {
+              if (resp.data) {
+                this.isSuccess_proof = 1;
+              }else {
+                this.isSuccess_proof = 2;
+              }
+            })
         },
         createCertifiedTx() {
 
