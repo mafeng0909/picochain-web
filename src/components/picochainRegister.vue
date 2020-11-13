@@ -101,6 +101,16 @@
           flag: 0,
           isSuccess_face: 0,
           isSuccess_proof: 0,
+          contractParams: {
+            paramA1: "",
+            paramA2: "",
+            paramB1: "",
+            paramB2: "",
+            paramB3: "",
+            paramB4: "",
+            paramC1: "",
+            paramC2: "",
+          },
         };
       },
       created() {
@@ -129,7 +139,7 @@
           console.log(res);
           console.log(file);
           if (this.flag === 0) {
-            this.path.path1 = "/home/mafeng/IdeaProjects/picochain-web/src/picture"+ file.name;
+            this.path.path1 = "/home/mafeng/IdeaProjects/picochain-web/src/picture/"+ file.name;
             this.flag++;
           }else if (this.flag === 1) {
             this.path.path2 = "/home/mafeng/IdeaProjects/picochain-web/src/picture/"+ file.name;
@@ -147,7 +157,7 @@
             })
         },
         generateProof() {
-          this.$http.post("/zksnark/generateProof")
+          this.$http.get("/zksnark/generateProof")
             .then(resp => {
               if (resp.data) {
                 this.isSuccess_proof = 1;
@@ -157,6 +167,18 @@
             })
         },
         createCertifiedTx() {
+
+          this.$http.get("/blockchain/contractParams")
+            .then(resp => {
+              this.contractParams.paramA1 = resp.data.paramA1;
+              this.contractParams.paramA2 = resp.data.paramA2;
+              this.contractParams.paramB1 = resp.data.paramB1;
+              this.contractParams.paramB2 = resp.data.paramB2;
+              this.contractParams.paramB3 = resp.data.paramB3;
+              this.contractParams.paramB4 = resp.data.paramB4;
+              this.contractParams.paramC1 = resp.data.paramC1;
+              this.contractParams.paramC2 = resp.data.paramC2;
+            })
 
         },
         createRegisterTx() {
