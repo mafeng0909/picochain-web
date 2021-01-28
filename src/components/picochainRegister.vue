@@ -74,13 +74,28 @@
             </div>
 
             <!-- 步骤三：认证交易 -->
+            <div class="mpAddress" style="color: white">
+              <el-form ref="form" :model="form1" label-width="110px" v-show="index === 4">
+                <el-form-item label="身份证号">
+                  <el-col :span="20">
+                    <el-input v-model="form.id_card" placeholder="请输入一次性地址"></el-input>
+                  </el-col>
+                </el-form-item>
+                <el-form-item label="一次性地址密码">
+                  <el-col :span="20">
+                    <el-input v-model="form.temp_address_password" placeholder="请输入一次性地址密码"></el-input>
+                  </el-col>
+                </el-form-item>
+              </el-form>
+            </div>
             <div style="color: white" v-show="index === 3 && isSuccess_tx === 1">发送认证交易...</div>
             <div style="color: white" v-show="index === 3 && isSuccess_tx === 2">认证交易打包成功</div>
             <div style="color: white" v-show="index === 3 && isSuccess_tx === 3">认证交易打包失败</div>
             <div>
               <el-button v-show="index === 3" type="primary" @click="beforeStep">上一步</el-button>
+              <el-button v-show="index === 3" type="primary" @click="createTempAddress">生成一次性地址</el-button>
               <el-button v-show="index === 3" type="primary" @click="createCertifiedTx">认证交易</el-button>
-              <el-button v-show="index === 3 && isSuccess_tx === 2" type="primary" @click="nextStep">下一步</el-button>
+              <el-button v-show="index === 3 " type="primary" @click="nextStep">下一步</el-button>
             </div>
 
             <!-- 步骤四：注册交易 -->
@@ -107,7 +122,7 @@
             <div style="color: white" v-show="index === 4 && isSuccess_tx === 5">发送注册交易...</div>
             <div style="color: white" v-show="index === 4 && isSuccess_tx === 6">注册交易打包成功</div>
             <div style="color: white" v-show="index === 4 && isSuccess_tx === 6">恭喜您，注册成功!!!</div>
-            <div style="color: white" v-show="index === 4 && isSuccess_tx === 6">注册交易打包失败</div>
+            <div style="color: white" v-show="index === 4 && isSuccess_tx === 7">注册交易打包失败</div>
             <div>
               <el-button v-show="index === 4" type="primary" @click="beforeStep">上一步</el-button>
               <el-button v-show="index === 4" type="primary" @click="generateSignature">生成环签名</el-button>
@@ -123,8 +138,9 @@
 
 <script>
   import Cookies from 'js-cookie';
-  import verifier from '../eth/verifier';
+  import ringVerifier from '../eth/ringVerifier';
   import web3 from '../eth/web3';
+  import zkpVerifier from "../eth/zkpVerifier";
 
     export default {
         name: "picochainRegister",
@@ -156,6 +172,10 @@
             temp_address: '',
             temp_address_password: '',
             main_address: '',
+          },
+          form1: {
+            id_card: '',
+            temp_address_password: '',
           }
         };
       },
@@ -215,6 +235,10 @@
               }
             })
         },
+        createTempAddress() {
+          // 生成一次性地址
+
+        },
         createCertifiedTx() {
 
           let A, B, C;
@@ -245,10 +269,10 @@
                 const accounts = await web3.eth.getAccounts();
                 console.log('Sending from Metamask account: ' + accounts[0])
 
-                const ethAddress= await verifier.options.address;
+                const ethAddress= await zkpVerifier.options.address;
                 console.log(ethAddress)
 
-                verifier.methods.verifyProof(A, B, C, [90]).send({
+                zkpVerifier.methods.verifyProof(A, B, C, [90]).send({
                   from: accounts[0]
                 }, (error, transactionHash) => {
                   if (error) {
@@ -256,7 +280,7 @@
                   } else{
                     console.log(transactionHash);
                     // 创建合约监听事件
-                    verifier.once("IsVerified", {
+                    zkpVerifier.once("IsVerified", {
                       filter:{},
                       fromBlock: 0
                     }, function(error, event){
@@ -276,11 +300,54 @@
         },
         generateSignature() {
           // 生成环签名，成功后将isSuccess_tx置为4
+          void async function(_this) {
+            console.log('中间地址：' + _this.form.temp_address);
+            console.log('密码：' + _this.form.temp_address_password);
+            console.log('中间地址：' + _this.form.main_address);
 
+            _this.sign = await web3.eth.personal.signRingSignature(_this.form.temp_address, _this.form.temp_address_password, _this.form.main_address);
+            _this.isSuccess_tx = 4;
+          }(this)
         },
         createRegisterTx() {
           // 发送环签名验证交易，在发送交易时将isSuccess_tx置为5，验证成功后将isSuccess_tx置为6
+          void async function(_this) {
+            const accounts = await web3.eth.getAccounts();
+            // console.log('中间地址：' + accounts[0])
+            // const sign = await web3.eth.personal.signRingSignature(accounts[0], '123', accounts[1]);
+            console.log('Get ring signature ' + _this.sign);
 
+            const ethAddress= await ringVerifier.options.address;
+            console.log(ethAddress)
+
+            _this.isSuccess_tx = 5;
+
+            ringVerifier.methods.verify(_this.sign).send({
+              from: accounts[0],
+              gas: 3000000
+            }, (error, transactionHash) => {
+              if (error) {
+                console.log(error);
+              } else{
+                console.log(transactionHash);
+                // 创建合约监听事件
+                ringVerifier.once("Verify", {
+                  filter:{},
+                  fromBlock: 0
+                }, function(error, event){
+                  console.log(event);
+                  console.log(event.returnValues.ok);
+                  if (event.returnValues.ok) {
+                    _this.isSuccess_tx = 6;
+                  }else {
+                    _this.isSuccess_tx = 7;
+                  }
+                  // console.log(_this.isSuccess_tx);
+                })
+              }
+            }); //zkpVerifier
+
+          }(this)
         },
         back() {
           window.location = "http://www.picochain.com";

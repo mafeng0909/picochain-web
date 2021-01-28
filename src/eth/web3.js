@@ -20,7 +20,8 @@ if (window.ethereum) {
 } else if (window.web3) {   // 老版 MetaMask Legacy dapp browsers...
   web3Provider = window.web3.currentProvider;
 } else {
-  web3Provider = new Web3.providers.HttpProvider('http://localhost:8545');
+  // web3Provider = new Web3.providers.HttpProvider('http://localhost:8545');
+  web3Provider = new Web3.providers.WebsocketProvider('ws://localhost:8545');
 }
 let web3;
 web3 = new Web3(web3Provider);//web3js就是你需要的web3实例
