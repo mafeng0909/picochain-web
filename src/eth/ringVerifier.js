@@ -2,7 +2,8 @@ import web3 from './web3';
 
 //access our local copy to contract deployed on rinkeby testnet
 //use your own contract address
-const address = '0x038931733052695ab904c4af4aed3ed41041af65' // picochain网络
+//const address = '0x038931733052695ab904c4af4aed3ed41041af65' // picochain网络
+const address = '0xd0f9b5b18aabe2287bda640e91206b1aa27de537' // picochain网络
 // const address = '0x4b201a15566b0de92074479c20b3786418327f23' // geth-nodes/ring-node
 
 //use the ABI from your contract

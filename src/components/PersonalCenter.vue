@@ -26,16 +26,39 @@
       </el-header>
       <!--主内容-->
       <el-main class="main">
-        <el-upload
-          class="upload-demo"
-          action="https://jsonplaceholder.typicode.com/posts/"
-          :on-preview="handlePreview"
-          :on-remove="handleRemove"
-          :file-list="fileList"
-          list-type="picture">
-          <el-button size="small" type="primary">点击上传</el-button>
-          <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
-        </el-upload>
+
+        <div class="user">
+          <h1>个人信息</h1>
+          <el-card class="box-card box">
+            <div>用户名: {{showUser.username}}</div>
+            <el-divider></el-divider>
+<!--            <div>picochain地址：{{showUser.address}}</div>-->
+<!--            <el-divider></el-divider>-->
+            <div>手机号：{{showUser.phone}}</div>
+            <el-divider></el-divider>
+            <div>城市：{{showUser.city}}</div>
+          </el-card>
+          <div class="btns">
+            <el-button type="primary" @click="change=1">修改密码</el-button>
+            <el-button type="primary" @click="change=2">修改手机号</el-button>
+            <el-button type="primary" @click="change=3">修改城市</el-button>
+            <el-button type="info" @click="exit">退出登录</el-button>
+          </div>
+          <div v-if="change === 1">
+            <el-input v-model="oldPsw" placeholder="旧密码" class="width80"></el-input>
+            <el-input v-model="newPsw" placeholder="新密码" class="width80"></el-input>
+            <el-button @click="pswChange">修改</el-button>
+          </div>
+          <div v-if="change === 2">
+            <el-input v-model="newPhone" placeholder="新手机号" class="width80"></el-input>
+            <el-button type="primary" @click="descChange">修改</el-button>
+          </div>
+          <div v-if="change === 3">
+            <el-input v-model="newCity" placeholder="新城市" class="width80"></el-input>
+            <el-button type="primary" @click="descChange">修改</el-button>
+          </div>
+        </div>
+
       </el-main>
     </div>
   </div>
@@ -49,13 +72,37 @@
     data() {
       return {
         imgSrc: require('../assets/背景.jpg'),
-        showUser: null,
-        fileList: []
+        showUser: {
+          username: "",
+          address: "",
+          phone: "",
+          city: ""
+        },
+        fileList: [],
+        oldPsw: "",
+        newPsw: "",
+        newPhone: "",
+        newCity: "",
+        change: ''
       };
     },
     created() {
-      this.$http.get("/auth/verify")
-        .then(resp => this.showUser = resp.data);
+      const token = Cookies.get("PC_TOKEN");
+      if (token) {
+        this.$http.get("/auth/verify")
+          .then(resp => {
+            this.showUser.username = resp.data.username;
+
+            this.$http.post("/user/queryUser", this.$qs.stringify({"username": this.showUser.username}))
+              .then(resp => {
+                this.showUser.city = resp.data.city;
+                this.showUser.phone = resp.data.phone;
+              })
+          });
+
+      }else {
+        window.location = "http://www.picochain.com/#/login";
+      }
     },
     methods: {
       handleSelect(key, keyPath) {
@@ -74,8 +121,90 @@
           domain: "picochain.com"
         });
         window.location = "http://www.picochain.com";
+      },
+      pswChange () { // 修改密码
+        if (this.newPsw) {
+          this.$http.post("/user/changePsw", this.$qs.stringify({"username": this.showUser.username, "oldPsw": this.oldPsw, "newPsw": this.newPsw}))
+            .then(resp => {
+              if (resp.data) {
+                this.newPsw = "";
+                this.oldPsw = "";
+                this.change = 0;
+                window.alert("change success!!!")
+              }else {
+                this.newPsw = "";
+                this.oldPsw = "";
+                this.change = 0;
+                window.alert("change filed!!!")
+              }
+              window.reload();
+            })
+
+        }
+
+
+      },
+
+      descChange () { // 修改个人简介
+        if (this.newCity) {
+          this.$http.post("/user/changeInfo", this.$qs.stringify(
+            {"username": this.showUser.username,
+                   "info": "city",
+                   "data": this.newCity}))
+            .then(resp => {
+              if (resp.data) {
+                this.showUser.city = resp.data.city;
+                this.newCity = null;
+                this.change = 0;
+                window.alert("change success!!!");
+              }else {
+                this.newCity = null;
+                this.change = 0;
+                window.alert("change filed!!!");
+              }
+            })
+        }else if (this.newPhone) {
+          this.$http.post("/user/changeInfo", this.$qs.stringify(
+            {"username": this.showUser.username,
+                   "info": "phone",
+                   "data": this.newPhone}))
+            .then(resp => {
+              if (resp.data) {
+                this.showUser.phone = resp.data.phone;
+                this.newPhone = null;
+                this.change = 0;
+                window.alert("change success!!!");
+              }else {
+                this.newPhone = null;
+                this.change = 0;
+                window.alert("change filed!!!");
+              }
+            })
+        }
+
+        this.getData();
+      },
+      getData() {
+        const token = Cookies.get("PC_TOKEN");
+        if (token) {
+          this.$http.get("/auth/verify")
+            .then(resp => {
+              this.showUser.username = resp.data.username;
+
+              this.$http.post("/user/queryUser", this.$qs.stringify({"username": this.showUser.username}))
+                .then(resp => {
+                  this.showUser.city = resp.data.city;
+                  this.showUser.phone = resp.data.phone;
+                })
+            });
+
+        }else {
+          window.location = "http://www.picochain.com/#/login";
+        }
       }
+
     }
+
   }
 </script>
 

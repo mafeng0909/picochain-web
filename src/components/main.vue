@@ -18,7 +18,7 @@
           <el-submenu index="4" style="left: 750px" v-if="showUser !== null">
             <template slot="title">{{showUser.username}}</template>
             <el-menu-item index="PersonalCenter">个人中心</el-menu-item>
-            <el-menu-item index="picochainRegister">链上注册</el-menu-item>
+            <el-menu-item index="picochainApplication">链上注册</el-menu-item>
             <el-menu-item index="main" @click="exit">退出</el-menu-item>
           </el-submenu>
           <el-menu-item index="login" style="left: 750px" v-else>登录/注册</el-menu-item>

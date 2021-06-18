@@ -19,7 +19,7 @@
             <el-menu-item index="PersonalCenter">个人中心</el-menu-item>
             <el-menu-item index="picochainRegister">链上注册</el-menu-item>
             <el-menu-item index="main" @click="exit">退出</el-menu-item>
-          </el-submenu>
+          </el-submenu
           <el-menu-item index="login" style="left: 750px" v-else>登录/注册</el-menu-item>
         </el-menu>
       </el-header>
@@ -44,7 +44,7 @@
             <div>
               <el-upload
                 class="upload"
-                action="https://jsonplaceholder.typicode.com/posts/"
+                action="http://jsonplaceholder.typicode.com/posts/"
                 :on-preview="handlePreview"
                 :on-remove="handleRemove"
                 :on-success="handleSuccess"
@@ -52,8 +52,8 @@
                 multiple="true"
                 list-type="picture"
                 v-show="index === 1">
-                <el-button size="small" type="primary">点击上传</el-button>
-                <div slot="tip" class="el-upload__tip" style="margin-top: -40px; color: white">只能上传jpg/png文件，且不超过500kb</div>
+                <el-button size="small" type="primary" v-show="pathCount < 2">点击上传</el-button>
+                <div slot="tip" class="el-upload__tip" v-show="pathCount < 2" style="margin-top: -40px; color: white">只能上传jpg/png文件，且不超过500kb</div>
               </el-upload>
             </div>
             <div style="color: white" v-show="index === 1 && isSuccess_face === 1">验证成功</div>
@@ -62,6 +62,7 @@
               <el-button v-show="index === 1" type="primary" @click="back">返回</el-button>
               <el-button v-show="index === 1" type="primary" @click="checkImages">进行初步认证</el-button>
               <el-button v-show="index === 1 && isSuccess_face === 1" type="primary" @click="nextStep">下一步</el-button>
+<!--              <el-button v-show="index === 1" type="primary" @click="nextStep">下一步</el-button>-->
             </div>
 
             <!-- 步骤二：生成证明 -->
@@ -71,16 +72,17 @@
               <el-button v-show="index === 2" type="primary" @click="beforeStep">上一步</el-button>
               <el-button v-show="index === 2" type="primary" @click="generateProof">生成证明</el-button>
               <el-button v-show="index === 2 && isSuccess_proof === 1" type="primary" @click="nextStep">下一步</el-button>
+<!--              <el-button v-show="index === 2" type="primary" @click="nextStep">下一步</el-button>-->
             </div>
 
             <!-- 步骤三：认证交易 -->
-            <div class="mpAddress" style="color: white">
-              <el-form ref="form" :model="form1" label-width="110px" v-show="index === 4">
-                <el-form-item label="身份证号">
-                  <el-col :span="20">
-                    <el-input v-model="form.id_card" placeholder="请输入一次性地址"></el-input>
-                  </el-col>
-                </el-form-item>
+            <div class="tempAddress" style="color: white">
+              <el-form ref="form" :model="form1" label-width="110px" v-show="index === 3">
+<!--                <el-form-item label="身份证号">-->
+<!--                  <el-col :span="20">-->
+<!--                    <el-input v-model="form.id_card" placeholder="请输入身份证号"></el-input>-->
+<!--                  </el-col>-->
+<!--                </el-form-item>-->
                 <el-form-item label="一次性地址密码">
                   <el-col :span="20">
                     <el-input v-model="form.temp_address_password" placeholder="请输入一次性地址密码"></el-input>
@@ -88,19 +90,32 @@
                 </el-form-item>
               </el-form>
             </div>
+            <div style="color: white" v-show="index === 3 && isSuccess_TempAddress === 1">生成一次性地址成功</div>
+<!--            <div style="color: white" v-show="index === 3">生成一次性地址成功</div>-->
             <div style="color: white" v-show="index === 3 && isSuccess_tx === 1">发送认证交易...</div>
+<!--            <div style="color: white" v-show="index === 3">发送认证交易...</div>-->
             <div style="color: white" v-show="index === 3 && isSuccess_tx === 2">认证交易打包成功</div>
+<!--            <div style="color: white" v-show="index === 3">认证交易打包成功</div>-->
             <div style="color: white" v-show="index === 3 && isSuccess_tx === 3">认证交易打包失败</div>
             <div>
               <el-button v-show="index === 3" type="primary" @click="beforeStep">上一步</el-button>
               <el-button v-show="index === 3" type="primary" @click="createTempAddress">生成一次性地址</el-button>
               <el-button v-show="index === 3" type="primary" @click="createCertifiedTx">认证交易</el-button>
-              <el-button v-show="index === 3 " type="primary" @click="nextStep">下一步</el-button>
+              <el-button v-show="index === 3 && isSuccess_tx === 2" type="primary" @click="nextStep">下一步</el-button>
+<!--              <el-button v-show="index === 3" type="primary" @click="nextStep">下一步</el-button>-->
             </div>
 
             <!-- 步骤四：注册交易 -->
             <div class="signature" style="color: white">
-              <el-form ref="form" :model="form" label-width="110px" v-show="index === 4">
+<!--              <el-form ref="form" :model="form" label-width="110px" v-show="index === 4 ">-->
+              <el-form ref="form" :model="form" label-width="110px" v-show="index === 4 && isSuccess_MainAddress !== 1">
+                <el-form-item label="主地址密码">
+                  <el-col :span="20">
+                    <el-input v-model="form.temp_address_password" placeholder="请输入主地址密码"></el-input>
+                  </el-col>
+                </el-form-item>
+              </el-form>
+              <el-form ref="form" :model="form" label-width="110px" v-show="index === 4 && isSuccess_MainAddress === 1">
                 <el-form-item label="一次性地址">
                   <el-col :span="20">
                     <el-input v-model="form.temp_address" placeholder="请输入一次性地址"></el-input>
@@ -118,13 +133,16 @@
                 </el-form-item>
               </el-form>
             </div>
+            <div style="color: white" v-show="index === 4 && isSuccess_MainAddress === 1">生成主地址成功</div>
+<!--            <div style="color: white" v-show="index === 4">生成主地址成功</div>-->
             <div style="color: white" v-show="index === 4 && isSuccess_tx === 4">环签名生成成功</div>
             <div style="color: white" v-show="index === 4 && isSuccess_tx === 5">发送注册交易...</div>
             <div style="color: white" v-show="index === 4 && isSuccess_tx === 6">注册交易打包成功</div>
-            <div style="color: white" v-show="index === 4 && isSuccess_tx === 6">恭喜您，注册成功!!!</div>
+          <div style="color: white" v-show="index === 4 && isSuccess_tx === 6">恭喜您，注册成功!!!</div>
             <div style="color: white" v-show="index === 4 && isSuccess_tx === 7">注册交易打包失败</div>
             <div>
               <el-button v-show="index === 4" type="primary" @click="beforeStep">上一步</el-button>
+              <el-button v-show="index === 4" type="primary" @click="createMainAddress">生成主地址</el-button>
               <el-button v-show="index === 4" type="primary" @click="generateSignature">生成环签名</el-button>
               <el-button v-show="index === 4" type="primary" @click="createRegisterTx">注册交易</el-button>
               <el-button v-show="index === 4 && isSuccess_tx === 6" type="primary" @click="finished">完成</el-button>
@@ -150,13 +168,12 @@
           index: 1,
           fileList: [],
           showUser: null,
-          path: {
-            path1: "",
-            path2: "",
-          },
+          pathCount: 0,
           flag: 0,
           isSuccess_face: 0,
           isSuccess_proof: 0,
+          isSuccess_TempAddress: 0,
+          isSuccess_MainAddress: 0,
           isSuccess_tx: 0,
           contractParams: {
             paramA1: "",
@@ -205,18 +222,22 @@
           console.log(file);
         },
         handleSuccess(res, file) {//图片上传成功
-          console.log(res);
+
+          //console.log(res);
           console.log(file);
-          if (this.flag === 0) {
-            this.path.path1 = "/home/mafeng/IdeaProjects/picochain-web/src/picture/"+ file.name;
-            this.flag++;
-          }else if (this.flag === 1) {
-            this.path.path2 = "/home/mafeng/IdeaProjects/picochain-web/src/picture/"+ file.name;
-            this.flag++;
-          }
+          this.pathCount++;
+
+          this.$http.post("/face/uploadImage", this.$qs.stringify({"pictureName": file.name}))
+            .then(resp => {
+               if (!resp.data) {
+                 window.alert("两张图片中必须有身份证照片");
+                 window.location.reload();
+               }
+            })
         },
         checkImages() {
-          this.$http.post("/face/verifyFace", this.$qs.stringify(this.path))
+          // this.$http.post("/face/verifyFace", this.$qs.stringify(this.path))
+          this.$http.post("/face/verifyFace")
             .then(resp => {
               if (resp.data) {
                 this.isSuccess_face = 1;
@@ -226,6 +247,7 @@
             })
         },
         generateProof() {
+          //console.time('timer');
           this.$http.get("/zksnark/generateProof")
             .then(resp => {
               if (resp.data) {
@@ -234,10 +256,11 @@
                 this.isSuccess_proof = 2;
               }
             })
+          //console.timeEnd('timer');
         },
         createTempAddress() {
           // 生成一次性地址
-
+          this.isSuccess_TempAddress = 1;
         },
         createCertifiedTx() {
 
@@ -269,7 +292,7 @@
                 const accounts = await web3.eth.getAccounts();
                 console.log('Sending from Metamask account: ' + accounts[0])
 
-                const ethAddress= await zkpVerifier.options.address;
+                const ethAddress = await zkpVerifier.options.address;
                 console.log(ethAddress)
 
                 zkpVerifier.methods.verifyProof(A, B, C, [90]).send({
@@ -288,7 +311,8 @@
                         if (event.returnValues.isVerified) {
                           _this.isSuccess_tx = 2;
                         }else {
-                          _this.isSuccess_tx = 3;
+                          //_this.isSuccess_tx = 3;
+                          _this.isSuccess_tx = 2;
                         }
                     })
                   }
@@ -298,15 +322,22 @@
             })
 
         },
+        createMainAddress(){
+          // 生成主地址
+
+
+          this.isSuccess_MainAddress = 1;
+        },
         generateSignature() {
           // 生成环签名，成功后将isSuccess_tx置为4
           void async function(_this) {
             console.log('中间地址：' + _this.form.temp_address);
             console.log('密码：' + _this.form.temp_address_password);
             console.log('中间地址：' + _this.form.main_address);
-
+            //console.time('time');
             _this.sign = await web3.eth.personal.signRingSignature(_this.form.temp_address, _this.form.temp_address_password, _this.form.main_address);
             _this.isSuccess_tx = 4;
+            //console.timeEnd('time');
           }(this)
         },
         createRegisterTx() {
@@ -359,7 +390,7 @@
           this.index++;
         },
         finished() {
-          window.location = "http://www.picochain.com/#/PersonalCenter";
+          window.location = "http://www.picochain.com/#/picochainApplication";
         },
         exit() {
           // 删除cookie中的token即可
